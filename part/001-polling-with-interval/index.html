@@ -216,8 +216,7 @@
 
 <span class="cm">/**</span>
 <span class="cm"> * @function fetchWineReviews</span>
-<span class="cm"> * @desc An asynchronous function that retrieves the url data and returns </span>
-<span class="cm"> *  a promise</span>
+<span class="cm"> * @desc An asynchronous function that retrieves the url data and returns a promise</span>
 <span class="cm"> * @param {String} url</span>
 <span class="cm"> * @return {Promise} promise</span>
 <span class="cm"> * */</span>
@@ -228,10 +227,9 @@
 
 <span class="cm">/**</span>
 <span class="cm"> * @function poller</span>
-<span class="cm"> * @desc A function that takes in a function that returns a promise, an </span>
-<span class="cm"> *  interval and a callback and invokes the function at max, once during </span>
-<span class="cm"> *  the interval, by checking if the previous call has completed and </span>
-<span class="cm"> *  invoking the appropriate callback.</span>
+<span class="cm"> * @desc A function that takes in a function that returns a promise, an interval and a callback</span>
+<span class="cm"> *  and invokes the function at max, once during the interval, by checking if the previous call</span>
+<span class="cm"> *  has completed and invoking the appropriate callback.</span>
 <span class="cm"> * @param {Function} fetchFn A function, that once invoked, returns a promise</span>
 <span class="cm"> * @param {Number} interval Interval in milliseconds</span>
 <span class="cm"> * @param {Function} callback A callback with the signature callback(err, results)</span>
@@ -239,12 +237,9 @@
 <span class="cm"> * */</span>
 <span class="kd">function</span> <span class="nx">poller</span><span class="p">(</span><span class="nx">fetchFn</span><span class="p">,</span> <span class="nx">interval</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
   <span class="kd">let</span> <span class="nx">inProgress</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
-  <span class="c1">// Fire up the initial call</span>
-
   <span class="c1">// Note that I am not using a .finally as it is not supported on older versions of NodeJS</span>
   <span class="c1">// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally</span>
-
-  <span class="nx">fetchFn</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">results</span> <span class="p">=&gt;</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">invoke</span> <span class="o">=</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="nx">fetchFn</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">results</span> <span class="p">=&gt;</span> <span class="p">{</span>
     <span class="nx">inProgress</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
     <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">results</span><span class="p">);</span>
   <span class="p">},</span> <span class="nx">err</span> <span class="p">=&gt;</span> <span class="p">{</span>
@@ -255,21 +250,15 @@
     <span class="nx">callback</span><span class="p">(</span><span class="nx">ex</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
   <span class="p">});</span>
 
+  <span class="c1">// Make the initial invocation</span>
+  <span class="nx">invoke</span><span class="p">();</span>
+
   <span class="c1">// Fire up the subsequent calls</span>
   <span class="kr">const</span> <span class="nx">intervalId</span> <span class="o">=</span> <span class="nx">setInterval</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">inProgress</span><span class="p">)</span> <span class="p">{</span>
       <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;The previous call is completed, hence making the API call.&#39;</span><span class="p">);</span>
       <span class="nx">inProgress</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
-      <span class="nx">fetchFn</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">results</span> <span class="p">=&gt;</span> <span class="p">{</span>
-        <span class="nx">inProgress</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-        <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">results</span><span class="p">);</span>
-      <span class="p">},</span> <span class="nx">err</span> <span class="p">=&gt;</span> <span class="p">{</span>
-        <span class="nx">inProgress</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-        <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
-      <span class="p">}).</span><span class="k">catch</span><span class="p">(</span><span class="nx">ex</span> <span class="p">=&gt;</span> <span class="p">{</span>
-        <span class="nx">inProgress</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-        <span class="nx">callback</span><span class="p">(</span><span class="nx">ex</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
-      <span class="p">});</span>
+      <span class="nx">invoke</span><span class="p">();</span>
     <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
       <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;The previous call is still in progress, hence skipping.&#39;</span><span class="p">);</span>
     <span class="p">}</span>
@@ -279,14 +268,14 @@
 <span class="p">}</span>
 
 <span class="c1">// Example</span>
-<span class="p">(</span><span class="nx">async</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
   <span class="kr">const</span> <span class="nx">fetchFn</span> <span class="o">=</span>  <span class="nx">fetchWineReviews</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">SAMPLE_URL</span><span class="p">);</span>
   <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">fetchFn</span><span class="p">);</span>
   <span class="kd">let</span> <span class="nx">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
   <span class="kr">const</span> <span class="nx">stopPoller</span> <span class="o">=</span> <span class="nx">poller</span><span class="p">(</span><span class="nx">fetchFn</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">reviews</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">++</span><span class="nx">counter</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Encountered an arror while making the API call&#39;</span><span class="p">);</span>
-    <span class="k">else</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Got the data: &#39;</span><span class="p">,</span> <span class="nx">reviews</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">title</span><span class="p">);</span>
+    <span class="k">else</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Got the data: &#39;</span><span class="p">,</span> <span class="nx">reviews</span><span class="p">[</span><span class="o">~~</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span> <span class="o">*</span> <span class="nx">reviews</span><span class="p">.</span><span class="nx">length</span><span class="p">)].</span><span class="nx">title</span><span class="p">);</span>
   <span class="p">});</span>
 
   <span class="c1">// Shut down the poller after 5 seconds</span>
