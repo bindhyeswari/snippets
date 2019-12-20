@@ -25,9 +25,12 @@ const fetchWineReviews = async url => {
  * */
 function poller(fetchFn, interval, callback) {
   let inProgress = true;
+  // Fire up the initial call
+
   // Note that I am not using a .finally as it is not supported on older versions of NodeJS
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
-  const invoke = () => fetchFn().then(results => {
+
+  fetchFn().then(results => {
     inProgress = false;
     callback(null, results);
   }, err => {
@@ -38,15 +41,21 @@ function poller(fetchFn, interval, callback) {
     callback(ex, null);
   });
 
-  // Make the initial invocation
-  invoke();
-
   // Fire up the subsequent calls
   const intervalId = setInterval(() => {
     if (!inProgress) {
       console.log('The previous call is completed, hence making the API call.');
       inProgress = true;
-      invoke();
+      fetchFn().then(results => {
+        inProgress = false;
+        callback(null, results);
+      }, err => {
+        inProgress = false;
+        callback(err, null);
+      }).catch(ex => {
+        inProgress = false;
+        callback(ex, null);
+      });
     } else {
       console.log('The previous call is still in progress, hence skipping.');
     }
@@ -63,7 +72,7 @@ function poller(fetchFn, interval, callback) {
   const stopPoller = poller(fetchFn, 100, (err, reviews) => {
     console.log(++counter);
     if (err) console.log('Encountered an arror while making the API call');
-    else console.log('Got the data: ', reviews[~~(Math.random() * reviews.length)].title);
+    else console.log('Got the data: ', reviews[0].title);
   });
 
   // Shut down the poller after 5 seconds

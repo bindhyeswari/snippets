@@ -12,8 +12,7 @@ const SAMPLE_URL = 'https://raw.githubusercontent.com/bindhyeswari/interview-pre
 
 /**
  * @function fetchWineReviews
- * @desc An asynchronous function that retrieves the url data and returns 
- *  a promise
+ * @desc An asynchronous function that retrieves the url data and returns a promise
  * @param {String} url
  * @return {Promise} promise
  * */
@@ -24,10 +23,9 @@ const fetchWineReviews = async url => {
 
 /**
  * @function poller
- * @desc A function that takes in a function that returns a promise, an 
- *  interval and a callback and invokes the function at max, once during 
- *  the interval, by checking if the previous call has completed and 
- *  invoking the appropriate callback.
+ * @desc A function that takes in a function that returns a promise, an interval and a callback
+ *  and invokes the function at max, once during the interval, by checking if the previous call
+ *  has completed and invoking the appropriate callback.
  * @param {Function} fetchFn A function, that once invoked, returns a promise
  * @param {Number} interval Interval in milliseconds
  * @param {Function} callback A callback with the signature callback(err, results)
@@ -35,12 +33,9 @@ const fetchWineReviews = async url => {
  * */
 function poller(fetchFn, interval, callback) {
   let inProgress = true;
-  // Fire up the initial call
-
   // Note that I am not using a .finally as it is not supported on older versions of NodeJS
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
-
-  fetchFn().then(results => {
+  const invoke = () => fetchFn().then(results => {
     inProgress = false;
     callback(null, results);
   }, err => {
@@ -51,21 +46,15 @@ function poller(fetchFn, interval, callback) {
     callback(ex, null);
   });
 
+  // Make the initial invocation
+  invoke();
+
   // Fire up the subsequent calls
   const intervalId = setInterval(() => {
     if (!inProgress) {
       console.log('The previous call is completed, hence making the API call.');
       inProgress = true;
-      fetchFn().then(results => {
-        inProgress = false;
-        callback(null, results);
-      }, err => {
-        inProgress = false;
-        callback(err, null);
-      }).catch(ex => {
-        inProgress = false;
-        callback(ex, null);
-      });
+      invoke();
     } else {
       console.log('The previous call is still in progress, hence skipping.');
     }
@@ -75,14 +64,14 @@ function poller(fetchFn, interval, callback) {
 }
 
 // Example
-(async function () {
+(function () {
   const fetchFn =  fetchWineReviews.bind(null, SAMPLE_URL);
   console.log(fetchFn);
   let counter = 0;
   const stopPoller = poller(fetchFn, 100, (err, reviews) => {
     console.log(++counter);
     if (err) console.log('Encountered an arror while making the API call');
-    else console.log('Got the data: ', reviews[0].title);
+    else console.log('Got the data: ', reviews[~~(Math.random() * reviews.length)].title);
   });
 
   // Shut down the poller after 5 seconds
