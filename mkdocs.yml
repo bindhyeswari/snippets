@@ -1,0 +1,10 @@
+site_name: Snippets
+nav:
+  - Home: index.md
+theme:
+  name: material
+  custom_dir: custom_theme/
+markdown_extensions:
+  - codehilite
+extra_css: [index.css]
+
